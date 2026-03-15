@@ -1,0 +1,56 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { siteData } from "../data/siteData";
+
+const { contact } = siteData;
+---
+
+<BaseLayout title={`Contact — ${siteData.title}`}>
+  <section class="section">
+    <div class="container">
+      <div class="contact-form">
+        <div class="section__header">
+          <h1 class="section__title">Contact</h1>
+          <p class="section__subtitle">{contact.description}</p>
+        </div>
+        <form class="form" action={contact.formAction} method="POST">
+          <div class="form__group">
+            <label class="form__label" for="form-name">Your Name</label>
+            <input
+              class="form__input"
+              id="form-name"
+              type="text"
+              name="name"
+              placeholder="Name"
+              required
+            />
+          </div>
+          <div class="form__group">
+            <label class="form__label" for="form-email">Your Email</label>
+            <input
+              class="form__input"
+              id="form-email"
+              type="email"
+              name="_replyto"
+              placeholder="Email"
+              required
+            />
+          </div>
+          <div class="form__group">
+            <label class="form__label" for="form-text">Your Message</label>
+            <textarea
+              class="form__input"
+              id="form-text"
+              name="text"
+              rows="10"
+              placeholder="Message"
+              required></textarea>
+          </div>
+          <div class="form__group">
+            <button class="btn btn--outline" type="submit">Send Message</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+</BaseLayout>

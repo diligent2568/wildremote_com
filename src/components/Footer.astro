@@ -1,0 +1,25 @@
+---
+import { siteData } from "../data/siteData";
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="footer">
+  <div class="container">
+    <div class="footer__top">
+      <a class="footer__logo" href="/" aria-label={siteData.title}>
+        <img class="logo--dark" src={siteData.logoWhite} alt={siteData.title} />
+        <img class="logo--light" src={siteData.logo} alt={siteData.title} />
+      </a>
+      <p class="footer__tagline">{siteData.footerTagline}</p>
+    </div>
+    <div class="footer__bottom">
+      <span>&copy; {currentYear} {siteData.title}. All rights reserved.</span>
+      <nav class="footer__nav" aria-label="Footer navigation">
+        {siteData.menu.map((item) => (
+          <a href={item.url}>{item.title}</a>
+        ))}
+      </nav>
+    </div>
+  </div>
+</footer>

@@ -1,0 +1,22 @@
+---
+import { siteData } from "../data/siteData";
+
+const { mission } = siteData;
+---
+
+<section class="section section--alt">
+  <div class="container">
+    <div class="section__header">
+      <h2 class="section__title">{mission.title}</h2>
+      <p class="section__subtitle">{mission.description}</p>
+    </div>
+    <div class="stats-grid">
+      {mission.stats.map((stat) => (
+        <div class="stat-card">
+          <div class="stat-card__number">{stat.number}</div>
+          <div class="stat-card__label">{stat.label}</div>
+        </div>
+      ))}
+    </div>
+  </div>
+</section>

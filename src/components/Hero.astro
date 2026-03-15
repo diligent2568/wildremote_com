@@ -1,0 +1,21 @@
+---
+import { siteData } from "../data/siteData";
+
+const { hero } = siteData;
+---
+
+<section class="hero">
+  <div class="container">
+    <h1 class="hero__title">{hero.title}</h1>
+    <p class="hero__description">{hero.description}</p>
+    <div class="hero__cta">
+      <a href={hero.ctaUrl} class="btn btn--outline">{hero.ctaText}</a>
+    </div>
+  </div>
+</section>
+
+<div class="hero__banner">
+  <div class="container">
+    <span class="hero__banner-text">{hero.bannerText}</span>
+  </div>
+</div>

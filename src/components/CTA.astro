@@ -1,0 +1,15 @@
+---
+import { siteData } from "../data/siteData";
+
+const { cta } = siteData;
+---
+
+<section class="section cta-section">
+  <div class="container">
+    <div class="section__header">
+      <h2 class="section__title">{cta.title}</h2>
+      <p class="section__subtitle">{cta.description}</p>
+    </div>
+    <a href={cta.buttonUrl} class="btn btn--outline">{cta.buttonText}</a>
+  </div>
+</section>
