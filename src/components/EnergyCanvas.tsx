@@ -51,13 +51,13 @@ export default function EnergyCanvas() {
     const scrollSpeed = 0.4;
     const worldDepth = 12;
 
-    const cityCount = 180;
+    const cityCount = 300;
     for (let i = 0; i < cityCount; i++) {
       const seedX = i * 7.31;
       const seedY = i * 13.17;
       const r4 = srand(i + 3000);
-      const gx = (srand(i + 1000) * 2 - 1) * 1.1;
-      const gy = 0.3 + (i / cityCount) * (worldDepth - 0.5) + (Math.sin(seedY * 5.1) * 0.4);
+      const gx = (srand(i + 1000) * 2 - 1) * 1.4;
+      const gy = 0.3 + (i / cityCount) * 9.0 + (srand(i + 2000) * 1.5);
       const size = 2 + Math.pow(r4, 1.5) * 6;
       const brightness = 0.3 + srand(i + 4000) * 0.7;
       const angle = (srand(i + 5000) - 0.5) * 1.2;
@@ -183,7 +183,7 @@ export default function EnergyCanvas() {
       const earthBottom = h + 20;
       const sy = earthBottom - tDepth * (earthBottom - baseHorizon);
       const perspective = (1 - tDepth * 0.85);
-      const sx = w * 0.5 + gx * w * 0.38 * perspective;
+      const sx = w * 0.5 + gx * w * 0.48 * perspective;
       if (sx < -150 || sx > w + 150) return null;
       const scale = Math.max(0.05, perspective * 1.2);
       return { sx, sy, scale };
@@ -306,15 +306,15 @@ export default function EnergyCanvas() {
 
       for (const { city, sx, sy, scale, gy } of projected) {
         // Gentle fade very close to camera
-        const nearFade = Math.min(1, gy / 1.2);
+        const nearFade = Math.min(1, gy / 0.8);
 
         // Fade at very far depth extremes
-        const depthFade = gy > 8 ? Math.max(0, 1 - (gy - 8) / 2) : 1;
+        const depthFade = gy > 9 ? Math.max(0, 1 - (gy - 9) / 1.5) : 1;
 
-        const fade = nearFade * depthFade * Math.min(scale + 0.15, 1.5);
+        const fade = nearFade * depthFade;
 
         const flicker = 0.85 + noise(city.gx * 10 + t * 4, city.gy * 10) * 0.15;
-        const alpha = city.brightness * fade * flicker;
+        const alpha = city.brightness * fade * flicker * 1.8;
 
         if (alpha < 0.01) continue;
 
@@ -343,7 +343,7 @@ export default function EnergyCanvas() {
         for (const inter of city.intersections) {
           const lx = sx + inter.dx * drawScale;
           const ly = sy + inter.dy * drawScale * perspSquish;
-          const la = alpha * inter.b * 0.55;
+          const la = alpha * inter.b * 0.9;
           if (la < 0.01) continue;
 
           const r = Math.max(0.3, (0.4 + city.size * 0.06) * drawScale);
