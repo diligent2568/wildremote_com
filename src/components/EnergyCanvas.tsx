@@ -41,18 +41,30 @@ export default function EnergyCanvas() {
     }
 
     const cities: City[] = [];
-    const cityCount = 100;
-    for (let i = 0; i < cityCount; i++) {
-      const seed = i * 7.31;
-      const gx = Math.sin(seed * 1.7) * 2.2;
-      const gy = (Math.sin(seed * 2.3) * 0.5 + 0.5) * 5 + Math.random() * 2;
-      const size = 3 + Math.pow(Math.random(), 1.5) * 10;
-      const brightness = 0.3 + Math.random() * 0.7;
-      const angle = Math.sin(seed * 3.1) * 0.6; // slight rotation per city
+    // Seeded pseudo-random for reproducible but natural distribution
+    const srand = (n: number) => {
+      let x = Math.sin(n * 127.1 + 311.7) * 43758.5453;
+      return x - Math.floor(x);
+    };
 
-      // Build a grid of streets
-      const gridLines = Math.floor(3 + Math.random() * 4); // 3-6 lines per axis
-      const spacing = size * 1.6 / gridLines;
+    let t = 0;
+    const scrollSpeed = 0.4;
+    const worldDepth = 12;
+
+    const cityCount = 450;
+    for (let i = 0; i < cityCount; i++) {
+      const seedX = i * 7.31;
+      const seedY = i * 13.17;
+      const r4 = srand(i + 3000);
+      const gx = Math.sin(seedX * 1.7) * 1.2;
+      const gy = 0.3 + (i / cityCount) * (worldDepth - 0.5) + (Math.sin(seedY * 5.1) * 0.4);
+      const size = 2 + Math.pow(r4, 1.5) * 6;
+      const brightness = 0.3 + srand(i + 4000) * 0.7;
+      const angle = (srand(i + 5000) - 0.5) * 1.2;
+
+      // Build a denser grid of streets
+      const gridLines = Math.floor(5 + Math.random() * 6); // 5-10 lines per axis
+      const spacing = size * 2.2 / gridLines;
       const halfExtent = (gridLines * spacing) / 2;
       const streets: GridStreet[] = [];
       const intersections: { dx: number; dy: number; b: number }[] = [];
@@ -67,9 +79,8 @@ export default function EnergyCanvas() {
       // Horizontal streets
       for (let row = 0; row <= gridLines; row++) {
         const ly = -halfExtent + row * spacing;
-        // Occasionally truncate streets for organic feel
-        const startCol = Math.random() < 0.3 ? 1 : 0;
-        const endCol = Math.random() < 0.3 ? gridLines - 1 : gridLines;
+        const startCol = Math.random() < 0.15 ? 1 : 0;
+        const endCol = Math.random() < 0.15 ? gridLines - 1 : gridLines;
         const p1 = rot(-halfExtent + startCol * spacing, ly);
         const p2 = rot(-halfExtent + endCol * spacing, ly);
         streets.push({
@@ -93,8 +104,8 @@ export default function EnergyCanvas() {
       // Vertical streets
       for (let col = 0; col <= gridLines; col++) {
         const lx = -halfExtent + col * spacing;
-        const startRow = Math.random() < 0.25 ? 1 : 0;
-        const endRow = Math.random() < 0.25 ? gridLines - 1 : gridLines;
+        const startRow = Math.random() < 0.15 ? 1 : 0;
+        const endRow = Math.random() < 0.15 ? gridLines - 1 : gridLines;
         const p1 = rot(lx, -halfExtent + startRow * spacing);
         const p2 = rot(lx, -halfExtent + endRow * spacing);
         streets.push({
@@ -104,22 +115,38 @@ export default function EnergyCanvas() {
         });
       }
 
-      // Add some extra scatter lights around the grid (suburbs / sprawl)
-      const sprawlCount = Math.floor(Math.random() * (size * 0.8));
+      // Diagonal streets (spiderweb connections through the grid)
+      const diagCount = Math.floor(1 + Math.random() * 3);
+      for (let d = 0; d < diagCount; d++) {
+        const r1 = Math.floor(Math.random() * gridLines);
+        const c1 = Math.floor(Math.random() * gridLines);
+        const r2 = Math.min(gridLines, r1 + 1 + Math.floor(Math.random() * 3));
+        const c2 = Math.min(gridLines, c1 + 1 + Math.floor(Math.random() * 3));
+        const p1 = rot(-halfExtent + c1 * spacing, -halfExtent + r1 * spacing);
+        const p2 = rot(-halfExtent + c2 * spacing, -halfExtent + r2 * spacing);
+        streets.push({
+          x1: p1.rx, y1: p1.ry,
+          x2: p2.rx, y2: p2.ry,
+          brightness: 0.2 + Math.random() * 0.3,
+        });
+      }
+
+      // Sprawl lights radiating outward
+      const sprawlCount = Math.floor(3 + Math.random() * (size * 1.5));
       for (let j = 0; j < sprawlCount; j++) {
         const angle2 = Math.random() * Math.PI * 2;
-        const dist = halfExtent * (1 + Math.random() * 0.6);
+        const dist = halfExtent * (0.8 + Math.random() * 1.0);
         intersections.push({
           dx: Math.cos(angle2) * dist,
           dy: Math.sin(angle2) * dist,
-          b: 0.15 + Math.random() * 0.3,
+          b: 0.1 + Math.random() * 0.35,
         });
       }
 
       cities.push({ gx, gy, size, brightness, angle, streets, intersections });
     }
 
-    // Roads between nearby cities
+    // Roads between nearby cities — more connections, wider reach
     interface Road { from: number; to: number }
     const roads: Road[] = [];
     for (let i = 0; i < cities.length; i++) {
@@ -127,15 +154,13 @@ export default function EnergyCanvas() {
         const dx = cities[i].gx - cities[j].gx;
         const dy = cities[i].gy - cities[j].gy;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 0.8 && Math.random() > 0.6) {
+        if (dist < 1.5 && Math.random() > 0.35) {
           roads.push({ from: i, to: j });
         }
       }
     }
 
-    let t = 0;
-    const scrollSpeed = 0.4;
-    const worldDepth = 7; // total world depth that wraps
+    // t, scrollSpeed, worldDepth defined above city generation
 
     // Curved horizon: large arc so edges dip down, center is highest
     const horizonCenterY = () => h * 0.18;
@@ -150,14 +175,18 @@ export default function EnergyCanvas() {
     // Project ground coords to screen with perspective
     // gy=0 is near camera (bottom of screen), gy=large is far (top/horizon)
     const project = (gx: number, gy: number): { sx: number; sy: number; scale: number } | null => {
-      if (gy < 0.2) return null; // behind camera
-      const perspective = 1.5 / gy;
-      const sx = w * 0.5 + gx * w * 0.4 * perspective;
-      // Map to screen: far away = near curved horizon (top), close = bottom
-      const baseHorizon = horizonAtX(sx);
-      const sy = baseHorizon + (perspective * h * 0.9);
-      if (sy < baseHorizon - 10 || sy > h + 30 || sx < -100 || sx > w + 100) return null;
-      return { sx, sy, scale: Math.min(perspective * 2, 4) };
+      if (gy < 0.3) return null;
+      const nearClip = 0.3;
+      const farClip = 10.0;
+      const tDepth = Math.min(1, (gy - nearClip) / (farClip - nearClip));
+      const baseHorizon = horizonAtX(w * 0.5);
+      const earthBottom = h + 20;
+      const sy = earthBottom - tDepth * (earthBottom - baseHorizon);
+      const perspective = (1 - tDepth * 0.85);
+      const sx = w * 0.5 + gx * w * 0.38 * perspective;
+      if (sx < -150 || sx > w + 150) return null;
+      const scale = Math.max(0.05, perspective * 1.2);
+      return { sx, sy, scale };
     };
 
     const draw = () => {
@@ -266,8 +295,8 @@ export default function EnergyCanvas() {
         // Wrap the ground Y with scroll
         let gy = ((city.gy - scroll) % worldDepth);
         if (gy < 0) gy += worldDepth;
-
-        const p = project(city.gx, gy);
+        const lateralDrift = Math.sin(city.gy * 0.4 + t * 0.05) * 0.08;
+        const p = project(city.gx + lateralDrift, gy);
         if (!p) continue;
         projected.push({ city, sx: p.sx, sy: p.sy, scale: p.scale, gy });
       }
@@ -276,14 +305,13 @@ export default function EnergyCanvas() {
       projected.sort((a, b) => a.gy - b.gy);
 
       for (const { city, sx, sy, scale, gy } of projected) {
-        // Fade near horizon
-        const distRatio = Math.min(1, gy / 1.0);
-        const horizonFade = 1 - Math.pow(1 - distRatio, 0.5);
+        // Gentle fade very close to camera
+        const nearFade = Math.min(1, gy / 0.5);
 
-        // Fade at depth extremes
-        const depthFade = gy > 5 ? Math.max(0, 1 - (gy - 5) / 2) : 1;
+        // Fade at very far depth extremes
+        const depthFade = gy > 8 ? Math.max(0, 1 - (gy - 8) / 2) : 1;
 
-        const fade = horizonFade * depthFade * Math.min(scale, 1.5);
+        const fade = nearFade * depthFade * Math.min(scale + 0.15, 1.5);
 
         const flicker = 0.85 + noise(city.gx * 10 + t * 4, city.gy * 10) * 0.15;
         const alpha = city.brightness * fade * flicker;
@@ -291,29 +319,30 @@ export default function EnergyCanvas() {
         if (alpha < 0.01) continue;
 
         const perspSquish = 0.5; // vertical squish for perspective
+        const drawScale = Math.min(scale, 1.0); // cap grid scale
 
         // Street grid lines
-        if (scale > 0.3) {
+        if (drawScale > 0.3) {
           for (const st of city.streets) {
-            const lx1 = sx + st.x1 * scale;
-            const ly1 = sy + st.y1 * scale * perspSquish;
-            const lx2 = sx + st.x2 * scale;
-            const ly2 = sy + st.y2 * scale * perspSquish;
+            const lx1 = sx + st.x1 * drawScale;
+            const ly1 = sy + st.y1 * drawScale * perspSquish;
+            const lx2 = sx + st.x2 * drawScale;
+            const ly2 = sy + st.y2 * drawScale * perspSquish;
             const streetAlpha = alpha * st.brightness * 0.25;
             if (streetAlpha < 0.005) continue;
             ctx.beginPath();
             ctx.moveTo(lx1, ly1);
             ctx.lineTo(lx2, ly2);
             ctx.strokeStyle = `rgba(255, 210, 130, ${streetAlpha})`;
-            ctx.lineWidth = Math.max(0.3, scale * 0.35);
+            ctx.lineWidth = Math.max(0.3, drawScale * 0.2);
             ctx.stroke();
           }
         }
 
         // Intersection lights
         for (const inter of city.intersections) {
-          const lx = sx + inter.dx * scale;
-          const ly = sy + inter.dy * scale * perspSquish;
+          const lx = sx + inter.dx * drawScale;
+          const ly = sy + inter.dy * drawScale * perspSquish;
           const la = alpha * inter.b * 0.55;
           if (la < 0.01) continue;
 
@@ -356,6 +385,9 @@ export default function EnergyCanvas() {
         if (gy1 < 0) gy1 += worldDepth;
         let gy2 = ((c2.gy - scroll) % worldDepth);
         if (gy2 < 0) gy2 += worldDepth;
+
+        const gyDiff = Math.abs(gy1 - gy2);
+        if (gyDiff > 2.0) continue;
 
         const p1 = project(c1.gx, gy1);
         const p2 = project(c2.gx, gy2);
