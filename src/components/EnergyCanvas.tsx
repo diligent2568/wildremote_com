@@ -123,7 +123,8 @@ export default function EnergyCanvas() {
       z = z2;
 
       // Only draw the front hemisphere (facing camera)
-      if (z < -0.1) return null;
+      // Use a softer cutoff to prevent popping
+      if (z < -0.3) return null;
 
       // Perspective projection — sphere silhouette matches the horizon arc
       // Horizon arc: circle centered at (w/2, hCY + hCR) with radius hCR
