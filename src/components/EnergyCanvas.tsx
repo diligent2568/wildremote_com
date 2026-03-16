@@ -141,8 +141,10 @@ export default function EnergyCanvas() {
 
       const sx = w * 0.5 + (x * sphereR * fov / perspDiv) * screenScale;
       // Sphere center at the center of the horizon arc circle, nudged down
-      // On mobile portrait, move sphere higher
-      const portraitOffset = (h > w) ? h * 0.45 : h * 0.65;
+      // On mobile portrait, move sphere higher; on mobile landscape, push lower
+      const isPortrait = h > w;
+      const isMobileLandscape = !isPortrait && h < 500;
+      const portraitOffset = isPortrait ? h * 0.45 : isMobileLandscape ? h * 1.1 : h * 0.65;
       const sy = (hCY + hCR + portraitOffset) + (-y * sphereR * fov / perspDiv) * screenScale;
       const scale = fov / perspDiv;
 
