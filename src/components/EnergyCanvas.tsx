@@ -131,7 +131,7 @@ export default function EnergyCanvas() {
       // where hCY = h*0.18, hCR = w*3.5
       // We set the projected sphere radius = hCR and center = arc center
       const hCY = h * 0.18;
-      const hCR = w * 3.5;
+      const hCR = (h > w) ? w * 3.5 : w * 2.5;
       const fov = 5.5;
       const camDist = 2.2;
       const perspDiv = camDist - z * sphereR;
@@ -142,7 +142,7 @@ export default function EnergyCanvas() {
       const sx = w * 0.5 + (x * sphereR * fov / perspDiv) * screenScale;
       // Sphere center at the center of the horizon arc circle, nudged down
       // On mobile portrait, move sphere higher
-      const portraitOffset = (h > w) ? h * 0.45 : h * 0.85;
+      const portraitOffset = (h > w) ? h * 0.45 : h * 0.65;
       const sy = (hCY + hCR + portraitOffset) + (-y * sphereR * fov / perspDiv) * screenScale;
       const scale = fov / perspDiv;
 
