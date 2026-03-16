@@ -95,6 +95,7 @@ export default function EnergyCanvas() {
     const sphereR = 1.0;
     let rotX = 0; // X-axis rotation (top-to-bottom roll)
     const rotTilt = -0.6; // fixed tilt to look at the top of the sphere
+    const rotYOffset = 0.3; // fixed Y rotation to shift pattern left
 
     // Project a 3D point on a sphere to screen
     const project3D = (v: V3): { sx: number; sy: number; z: number; scale: number } | null => {
@@ -104,6 +105,14 @@ export default function EnergyCanvas() {
       let x = v[0];
       let y = v[1] * cosX - v[2] * sinX;
       let z = v[1] * sinX + v[2] * cosX;
+
+      // Apply fixed Y rotation to offset pattern
+      const cosY = Math.cos(rotYOffset);
+      const sinY = Math.sin(rotYOffset);
+      const x2 = x * cosY + z * sinY;
+      const z2a = -x * sinY + z * cosY;
+      x = x2;
+      z = z2a;
 
       // Apply fixed viewing tilt
       const cosT = Math.cos(rotTilt);
