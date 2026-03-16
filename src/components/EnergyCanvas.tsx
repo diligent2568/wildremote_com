@@ -237,8 +237,6 @@ export default function EnergyCanvas() {
       window.removeEventListener("resize", resize);
     };
   }, []);
-    };
-  }, []);
 
   return (
     <canvas
