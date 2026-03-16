@@ -1,16 +1,25 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Hero from "../components/Hero.astro";
-import Mission from "../components/Mission.astro";
-import Values from "../components/Values.astro";
-import Team from "../components/Team.astro";
-import CTA from "../components/CTA.astro";
+import "../styles/global.css";
+import EnergyCanvas from "../components/EnergyCanvas";
+import { siteData } from "../data/siteData";
 ---
 
-<BaseLayout>
-  <Hero />
-  <Mission />
-  <Values />
-  <Team />
-  <CTA />
-</BaseLayout>
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={siteData.description} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>{siteData.title}</title>
+  </head>
+  <body>
+    <EnergyCanvas client:only="react" />
+    <div class="glass-overlay">
+      <img src={siteData.logoWhite} alt={siteData.title} class="logo" />
+    </div>
+  </body>
+</html>
