@@ -12,12 +12,14 @@ import { siteData } from "../data/siteData";
     <meta name="description" content={siteData.description} />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{siteData.title}</title>
   </head>
   <body>
     <EnergyCanvas client:only="react" />
-    <div class="glass-overlay"></div>
+    <div class="glass-overlay">
+      <h1 class="site-title">WILD <span class="holdings">HOLDINGS</span></h1>
+    </div>
   </body>
 </html>
