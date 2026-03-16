@@ -25,35 +25,98 @@ export default function EnergyCanvas() {
       Math.sin(x * 2.5 - y * 1.3) * 0.25 +
       Math.sin(x * 5.3 + y * 2.1) * 0.125;
 
-    // City lights — positions in a 2D grid that will be projected with perspective
+    // City lights — grid-based street patterns that look like connected grids from orbit
+    interface GridStreet {
+      x1: number; y1: number; x2: number; y2: number; // relative to city center
+      brightness: number;
+    }
     interface City {
       gx: number; // ground x: -1 to 1 (left-right)
       gy: number; // ground y: 0+ (distance ahead, 0 = near camera)
       size: number;
       brightness: number;
-      cluster: { dx: number; dy: number; b: number }[];
+      angle: number; // rotation of the grid
+      streets: GridStreet[];
+      intersections: { dx: number; dy: number; b: number }[];
     }
 
     const cities: City[] = [];
-    const cityCount = 120;
+    const cityCount = 100;
     for (let i = 0; i < cityCount; i++) {
       const seed = i * 7.31;
-      const gx = (Math.sin(seed * 1.7) * 2.2);
+      const gx = Math.sin(seed * 1.7) * 2.2;
       const gy = (Math.sin(seed * 2.3) * 0.5 + 0.5) * 5 + Math.random() * 2;
-      const size = 2 + Math.pow(Math.random(), 2) * 8;
+      const size = 3 + Math.pow(Math.random(), 1.5) * 10;
       const brightness = 0.3 + Math.random() * 0.7;
+      const angle = Math.sin(seed * 3.1) * 0.6; // slight rotation per city
 
-      const cluster: { dx: number; dy: number; b: number }[] = [];
-      const subCount = Math.floor(2 + Math.random() * (size * 1.5));
-      for (let j = 0; j < subCount; j++) {
-        cluster.push({
-          dx: (Math.random() - 0.5) * size * 2,
-          dy: (Math.random() - 0.5) * size * 2,
-          b: 0.3 + Math.random() * 0.7,
+      // Build a grid of streets
+      const gridLines = Math.floor(3 + Math.random() * 4); // 3-6 lines per axis
+      const spacing = size * 1.6 / gridLines;
+      const halfExtent = (gridLines * spacing) / 2;
+      const streets: GridStreet[] = [];
+      const intersections: { dx: number; dy: number; b: number }[] = [];
+
+      const cos = Math.cos(angle);
+      const sin = Math.sin(angle);
+      const rot = (lx: number, ly: number) => ({
+        rx: lx * cos - ly * sin,
+        ry: lx * sin + ly * cos,
+      });
+
+      // Horizontal streets
+      for (let row = 0; row <= gridLines; row++) {
+        const ly = -halfExtent + row * spacing;
+        // Occasionally truncate streets for organic feel
+        const startCol = Math.random() < 0.3 ? 1 : 0;
+        const endCol = Math.random() < 0.3 ? gridLines - 1 : gridLines;
+        const p1 = rot(-halfExtent + startCol * spacing, ly);
+        const p2 = rot(-halfExtent + endCol * spacing, ly);
+        streets.push({
+          x1: p1.rx, y1: p1.ry,
+          x2: p2.rx, y2: p2.ry,
+          brightness: 0.4 + Math.random() * 0.4,
+        });
+
+        // Intersections along this row
+        for (let col = startCol; col <= endCol; col++) {
+          const lx = -halfExtent + col * spacing;
+          const p = rot(lx, ly);
+          intersections.push({
+            dx: p.rx,
+            dy: p.ry,
+            b: 0.3 + Math.random() * 0.7,
+          });
+        }
+      }
+
+      // Vertical streets
+      for (let col = 0; col <= gridLines; col++) {
+        const lx = -halfExtent + col * spacing;
+        const startRow = Math.random() < 0.25 ? 1 : 0;
+        const endRow = Math.random() < 0.25 ? gridLines - 1 : gridLines;
+        const p1 = rot(lx, -halfExtent + startRow * spacing);
+        const p2 = rot(lx, -halfExtent + endRow * spacing);
+        streets.push({
+          x1: p1.rx, y1: p1.ry,
+          x2: p2.rx, y2: p2.ry,
+          brightness: 0.3 + Math.random() * 0.4,
         });
       }
 
-      cities.push({ gx, gy, size, brightness, cluster });
+      // Add some extra scatter lights around the grid (suburbs / sprawl)
+      const sprawlCount = Math.floor(Math.random() * (size * 0.8));
+      for (let j = 0; j < sprawlCount; j++) {
+        const angle2 = Math.random() * Math.PI * 2;
+        const dist = halfExtent * (1 + Math.random() * 0.6);
+        intersections.push({
+          dx: Math.cos(angle2) * dist,
+          dy: Math.sin(angle2) * dist,
+          b: 0.15 + Math.random() * 0.3,
+        });
+      }
+
+      cities.push({ gx, gy, size, brightness, angle, streets, intersections });
     }
 
     // Roads between nearby cities
@@ -227,25 +290,55 @@ export default function EnergyCanvas() {
 
         if (alpha < 0.01) continue;
 
-        // Sub-lights
-        for (const sub of city.cluster) {
-          const lx = sx + sub.dx * scale;
-          const ly = sy + sub.dy * scale * 0.5; // squish vertically for perspective
-          const la = alpha * sub.b * 0.5;
+        const perspSquish = 0.5; // vertical squish for perspective
 
-          ctx.fillStyle = `rgba(255, 220, 150, ${la})`;
-          ctx.beginPath();
-          ctx.arc(lx, ly, (0.5 + city.size * 0.08) * scale, 0, Math.PI * 2);
-          ctx.fill();
+        // Street grid lines
+        if (scale > 0.3) {
+          for (const st of city.streets) {
+            const lx1 = sx + st.x1 * scale;
+            const ly1 = sy + st.y1 * scale * perspSquish;
+            const lx2 = sx + st.x2 * scale;
+            const ly2 = sy + st.y2 * scale * perspSquish;
+            const streetAlpha = alpha * st.brightness * 0.25;
+            if (streetAlpha < 0.005) continue;
+            ctx.beginPath();
+            ctx.moveTo(lx1, ly1);
+            ctx.lineTo(lx2, ly2);
+            ctx.strokeStyle = `rgba(255, 210, 130, ${streetAlpha})`;
+            ctx.lineWidth = Math.max(0.3, scale * 0.35);
+            ctx.stroke();
+          }
         }
 
-        // Core glow
-        const glowR = city.size * 2 * scale;
+        // Intersection lights
+        for (const inter of city.intersections) {
+          const lx = sx + inter.dx * scale;
+          const ly = sy + inter.dy * scale * perspSquish;
+          const la = alpha * inter.b * 0.55;
+          if (la < 0.01) continue;
+
+          const r = Math.max(0.3, (0.4 + city.size * 0.06) * scale);
+          ctx.fillStyle = `rgba(255, 225, 160, ${la})`;
+          ctx.beginPath();
+          ctx.arc(lx, ly, r, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Brighter intersections get a tiny bloom
+          if (la > 0.15 && r > 0.8) {
+            ctx.fillStyle = `rgba(255, 240, 200, ${la * 0.3})`;
+            ctx.beginPath();
+            ctx.arc(lx, ly, r * 2, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        // Core city glow
+        const glowR = city.size * 2.5 * scale;
         if (glowR > 1.5) {
           const glow = ctx.createRadialGradient(sx, sy, 0, sx, sy, glowR);
-          glow.addColorStop(0, `rgba(255, 230, 170, ${alpha * 0.35})`);
-          glow.addColorStop(0.3, `rgba(255, 200, 100, ${alpha * 0.15})`);
-          glow.addColorStop(0.7, `rgba(255, 160, 50, ${alpha * 0.04})`);
+          glow.addColorStop(0, `rgba(255, 230, 170, ${alpha * 0.25})`);
+          glow.addColorStop(0.3, `rgba(255, 200, 100, ${alpha * 0.1})`);
+          glow.addColorStop(0.7, `rgba(255, 160, 50, ${alpha * 0.03})`);
           glow.addColorStop(1, "rgba(255, 100, 20, 0)");
           ctx.fillStyle = glow;
           ctx.beginPath();
