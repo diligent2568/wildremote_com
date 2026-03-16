@@ -170,7 +170,7 @@ export default function EnergyCanvas() {
         ctx.moveTo(pa.sx, pa.sy);
         ctx.lineTo(pb.sx, pb.sy);
         ctx.strokeStyle = `rgba(100, 200, 255, ${edgeAlpha})`;
-        ctx.lineWidth = 0.5 + zFade * 0.8;
+        ctx.lineWidth = 0.3 + zFade * 0.4;
         ctx.stroke();
       }
 
@@ -187,16 +187,21 @@ export default function EnergyCanvas() {
         const r = 1.0 + zFade * 1.5;
 
         // Core dot
-        ctx.fillStyle = `rgba(150, 220, 255, ${nodeAlpha})`;
+        ctx.fillStyle = `rgba(180, 230, 255, ${nodeAlpha})`;
         ctx.beginPath();
         ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
         ctx.fill();
 
-        // Glow on brighter nodes
-        if (nodeAlpha > 0.25) {
-          ctx.fillStyle = `rgba(100, 180, 255, ${nodeAlpha * 0.2})`;
+        // Soft glow halo
+        if (nodeAlpha > 0.1) {
+          ctx.fillStyle = `rgba(100, 180, 255, ${nodeAlpha * 0.15})`;
           ctx.beginPath();
-          ctx.arc(p.sx, p.sy, r * 3, 0, Math.PI * 2);
+          ctx.arc(p.sx, p.sy, r * 4, 0, Math.PI * 2);
+          ctx.fill();
+
+          ctx.fillStyle = `rgba(80, 150, 255, ${nodeAlpha * 0.06})`;
+          ctx.beginPath();
+          ctx.arc(p.sx, p.sy, r * 7, 0, Math.PI * 2);
           ctx.fill();
         }
       }
