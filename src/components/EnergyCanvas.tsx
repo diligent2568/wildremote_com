@@ -144,7 +144,7 @@ export default function EnergyCanvas() {
       // On mobile portrait, move sphere higher; on mobile landscape, push lower
       const isPortrait = h > w;
       const isMobileLandscape = !isPortrait && h < 500;
-      const portraitOffset = isPortrait ? h * 0.45 : isMobileLandscape ? h * 1.1 : h * 0.65;
+      const portraitOffset = isPortrait ? h * 0.45 : isMobileLandscape ? h * 1.3 : h * 0.65;
       const sy = (hCY + hCR + portraitOffset) + (-y * sphereR * fov / perspDiv) * screenScale;
       const scale = fov / perspDiv;
 
