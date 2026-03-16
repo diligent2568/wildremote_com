@@ -151,6 +151,36 @@ export default function EnergyCanvas() {
       return { sx, sy, z, scale };
     };
 
+    // === COLOR SCHEME (dark / light) ===
+    const darkTheme = {
+      bg: "#000308",
+      edgeColor: (a: number) => `rgba(255, 255, 255, ${a})`,
+      nodeCoreColor: (a: number) => `rgba(255, 255, 255, ${a})`,
+      nodeGlow1Color: (a: number) => `rgba(255, 255, 255, ${a})`,
+      nodeGlow2Color: (a: number) => `rgba(255, 255, 255, ${a})`,
+      faceCenterColor: (a: number) => `rgba(255, 255, 255, ${a})`,
+      compositeOp: "lighter" as GlobalCompositeOperation,
+    };
+    const lightTheme = {
+      bg: "#ffffff",
+      edgeColor: (a: number) => `rgba(0, 0, 0, ${a})`,
+      nodeCoreColor: (a: number) => `rgba(0, 0, 0, ${a})`,
+      nodeGlow1Color: (a: number) => `rgba(0, 0, 0, ${a})`,
+      nodeGlow2Color: (a: number) => `rgba(0, 0, 0, ${a})`,
+      faceCenterColor: (a: number) => `rgba(0, 0, 0, ${a})`,
+      compositeOp: "source-over" as GlobalCompositeOperation,
+    };
+
+    const getTheme = () =>
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+        ? darkTheme
+        : lightTheme;
+
+    let theme = getTheme();
+    const mql = window.matchMedia("(prefers-color-scheme: dark)");
+    const onThemeChange = () => { theme = getTheme(); };
+    mql.addEventListener("change", onThemeChange);
+
     let t = 0;
 
     const draw = () => {
@@ -158,12 +188,12 @@ export default function EnergyCanvas() {
       rotX += 0.0002; // slow top-to-bottom rotation
 
       // Clear
-      ctx.fillStyle = "#000308";
+      ctx.fillStyle = theme.bg;
       ctx.fillRect(0, 0, w, h);
 
       // === GEODESIC WIREFRAME ===
       ctx.save();
-      ctx.globalCompositeOperation = "lighter";
+      ctx.globalCompositeOperation = theme.compositeOp;
 
       // Project all vertices
       const projected = verts.map(v => project3D(v));
@@ -183,7 +213,7 @@ export default function EnergyCanvas() {
         ctx.beginPath();
         ctx.moveTo(pa.sx, pa.sy);
         ctx.lineTo(pb.sx, pb.sy);
-        ctx.strokeStyle = `rgba(100, 200, 255, ${edgeAlpha})`;
+        ctx.strokeStyle = theme.edgeColor(edgeAlpha);
         ctx.lineWidth = 0.3 + zFade * 0.4;
         ctx.stroke();
       }
@@ -201,19 +231,19 @@ export default function EnergyCanvas() {
         const r = 1.0 + zFade * 1.5;
 
         // Core dot
-        ctx.fillStyle = `rgba(180, 230, 255, ${nodeAlpha})`;
+        ctx.fillStyle = theme.nodeCoreColor(nodeAlpha);
         ctx.beginPath();
         ctx.arc(p.sx, p.sy, r, 0, Math.PI * 2);
         ctx.fill();
 
         // Soft glow halo
         if (nodeAlpha > 0.1) {
-          ctx.fillStyle = `rgba(100, 180, 255, ${nodeAlpha * 0.15})`;
+          ctx.fillStyle = theme.nodeGlow1Color(nodeAlpha * 0.15);
           ctx.beginPath();
           ctx.arc(p.sx, p.sy, r * 4, 0, Math.PI * 2);
           ctx.fill();
 
-          ctx.fillStyle = `rgba(80, 150, 255, ${nodeAlpha * 0.06})`;
+          ctx.fillStyle = theme.nodeGlow2Color(nodeAlpha * 0.06);
           ctx.beginPath();
           ctx.arc(p.sx, p.sy, r * 7, 0, Math.PI * 2);
           ctx.fill();
@@ -234,7 +264,7 @@ export default function EnergyCanvas() {
         const cx = (pa.sx + pb.sx + pc.sx) / 3;
         const cy = (pa.sy + pb.sy + pc.sy) / 3;
 
-        ctx.fillStyle = `rgba(60, 140, 220, ${zFade * 0.04})`;
+        ctx.fillStyle = theme.faceCenterColor(zFade * 0.04);
         ctx.beginPath();
         ctx.arc(cx, cy, 2 + zFade * 3, 0, Math.PI * 2);
         ctx.fill();
@@ -250,6 +280,7 @@ export default function EnergyCanvas() {
     return () => {
       cancelAnimationFrame(animationId);
       window.removeEventListener("resize", resize);
+      mql.removeEventListener("change", onThemeChange);
     };
   }, []);
 

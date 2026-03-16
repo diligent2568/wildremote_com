@@ -12,6 +12,13 @@ html, body {
   color: #fff;
 }
 
+@media (prefers-color-scheme: light) {
+  html, body {
+    background: #fff;
+    color: #000;
+  }
+}
+
 .glass-overlay {
   position: fixed;
   inset: 0;
