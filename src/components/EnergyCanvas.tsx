@@ -32,14 +32,14 @@ export default function EnergyCanvas() {
     window.addEventListener("resize", resize);
 
     // Create energy blobs
-    const blobs: Blob[] = Array.from({ length: 6 }, () => ({
+    const blobs: Blob[] = Array.from({ length: 5 }, () => ({
       x: Math.random() * width,
       y: Math.random() * height,
-      vx: (Math.random() - 0.5) * 0.4,
-      vy: (Math.random() - 0.5) * 0.4,
-      radius: 150 + Math.random() * 200,
+      vx: (Math.random() - 0.5) * 1.5,
+      vy: (Math.random() - 0.5) * 1.5,
+      radius: 250 + Math.random() * 300,
       phase: Math.random() * Math.PI * 2,
-      speed: 0.003 + Math.random() * 0.006,
+      speed: 0.008 + Math.random() * 0.012,
       hue: 200 + Math.random() * 60, // blue-cyan-violet range
     }));
 
@@ -66,7 +66,7 @@ export default function EnergyCanvas() {
 
         // Pulsing radius
         const pulse = Math.sin(time * blob.speed + blob.phase);
-        const r = blob.radius + pulse * 40;
+        const r = blob.radius + pulse * 80;
 
         const grad = ctx.createRadialGradient(
           blob.x,
@@ -76,8 +76,8 @@ export default function EnergyCanvas() {
           blob.y,
           r
         );
-        const alpha = 0.15 + pulse * 0.05;
-        const hueShift = Math.sin(time * 0.002 + blob.phase) * 20;
+        const alpha = 0.22 + pulse * 0.08;
+        const hueShift = Math.sin(time * 0.004 + blob.phase) * 30;
         const h = blob.hue + hueShift;
 
         grad.addColorStop(0, `hsla(${h}, 80%, 60%, ${alpha + 0.1})`);
