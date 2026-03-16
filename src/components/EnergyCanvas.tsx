@@ -51,12 +51,12 @@ export default function EnergyCanvas() {
     const scrollSpeed = 0.4;
     const worldDepth = 12;
 
-    const cityCount = 450;
+    const cityCount = 180;
     for (let i = 0; i < cityCount; i++) {
       const seedX = i * 7.31;
       const seedY = i * 13.17;
       const r4 = srand(i + 3000);
-      const gx = Math.sin(seedX * 1.7) * 1.2;
+      const gx = (srand(i + 1000) * 2 - 1) * 1.1;
       const gy = 0.3 + (i / cityCount) * (worldDepth - 0.5) + (Math.sin(seedY * 5.1) * 0.4);
       const size = 2 + Math.pow(r4, 1.5) * 6;
       const brightness = 0.3 + srand(i + 4000) * 0.7;
@@ -154,7 +154,7 @@ export default function EnergyCanvas() {
         const dx = cities[i].gx - cities[j].gx;
         const dy = cities[i].gy - cities[j].gy;
         const dist = Math.sqrt(dx * dx + dy * dy);
-        if (dist < 1.5 && Math.random() > 0.35) {
+        if (dist < 0.7 && Math.random() > 0.35) {
           roads.push({ from: i, to: j });
         }
       }
@@ -306,7 +306,7 @@ export default function EnergyCanvas() {
 
       for (const { city, sx, sy, scale, gy } of projected) {
         // Gentle fade very close to camera
-        const nearFade = Math.min(1, gy / 0.5);
+        const nearFade = Math.min(1, gy / 1.2);
 
         // Fade at very far depth extremes
         const depthFade = gy > 8 ? Math.max(0, 1 - (gy - 8) / 2) : 1;
@@ -322,7 +322,7 @@ export default function EnergyCanvas() {
         const drawScale = Math.min(scale, 1.0); // cap grid scale
 
         // Street grid lines
-        if (drawScale > 0.3) {
+        if (drawScale > 0.12) {
           for (const st of city.streets) {
             const lx1 = sx + st.x1 * drawScale;
             const ly1 = sy + st.y1 * drawScale * perspSquish;
@@ -346,7 +346,7 @@ export default function EnergyCanvas() {
           const la = alpha * inter.b * 0.55;
           if (la < 0.01) continue;
 
-          const r = Math.max(0.3, (0.4 + city.size * 0.06) * scale);
+          const r = Math.max(0.3, (0.4 + city.size * 0.06) * drawScale);
           ctx.fillStyle = `rgba(255, 225, 160, ${la})`;
           ctx.beginPath();
           ctx.arc(lx, ly, r, 0, Math.PI * 2);
