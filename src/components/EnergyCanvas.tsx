@@ -30,7 +30,7 @@ export default function EnergyCanvas() {
       Math.sin(x * 9.1 + s * 1.9) * 0.0625;
 
     const draw = () => {
-      t += 0.008;
+      t += 0.04;
       ctx.clearRect(0, 0, w, h);
 
       // --- Sky / deep background ---
@@ -56,15 +56,15 @@ export default function EnergyCanvas() {
       const steps = 200;
 
       // Wave shape parameters that slowly breathe
-      const breathe = Math.sin(t * 0.3) * 0.03;
-      const sway = Math.sin(t * 0.2) * 0.02;
+      const breathe = Math.sin(t * 0.4) * 0.06;
+      const sway = Math.sin(t * 0.25) * 0.04;
 
       for (let i = 0; i <= steps; i++) {
         const p = i / steps; // 0 → 1 across screen width
 
         // Base wave profile: a big swell peaking around 30-40% from left
         const peak = 0.33 + sway;
-        const spread = 0.28;
+        const spread = 0.28 + Math.sin(t * 0.15) * 0.03;
         // Gaussian-like hump
         const hump = Math.exp(-((p - peak) ** 2) / (2 * spread * spread));
 
@@ -79,7 +79,7 @@ export default function EnergyCanvas() {
         }
 
         // Turbulence on the wave face
-        const turb = noise(p * 12 + t * 0.5, t * 0.8) * 0.035 * hump;
+        const turb = noise(p * 12 + t * 0.8, t * 1.2) * 0.05 * hump;
 
         const x = p * w;
         const y = h * (0.85 - waveHeight - curl + turb);
@@ -196,9 +196,9 @@ export default function EnergyCanvas() {
       ctx.moveTo(0, h);
       for (let x = 0; x <= w; x += 3) {
         const p = x / w;
-        const swell = Math.sin(p * 3 + t * 0.4) * 20 +
-                       Math.sin(p * 7 + t * 0.7) * 8 +
-                       Math.sin(p * 13 + t * 1.1) * 4;
+        const swell = Math.sin(p * 3 + t * 0.6) * 25 +
+                       Math.sin(p * 7 + t * 1.0) * 12 +
+                       Math.sin(p * 13 + t * 1.6) * 6;
         ctx.lineTo(x, h * 0.82 + swell);
       }
       ctx.lineTo(w, h);
